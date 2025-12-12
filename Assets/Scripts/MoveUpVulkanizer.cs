@@ -6,9 +6,11 @@ public class LiftObjectsOnGrip : MonoBehaviour
 {
     [Header("Настройки движения")]
     [SerializeField] private float moveAmount = 0.2f; 
-    [SerializeField] private float moveSpeed = 2f;  
+    [SerializeField] private float moveSpeed = 2f;
+    [SerializeField] private Transform childObject; // Добавьте эту ссылку
 
     private Vector3 startPosition;
+    private Vector3 childStartOffset; // Смещение дочернего объекта
     private Vector3 targetPosition;
     private bool isMoving = false;
 
@@ -18,6 +20,12 @@ public class LiftObjectsOnGrip : MonoBehaviour
     {
         startPosition = transform.position;
         targetPosition = startPosition;
+        
+        // Запоминаем начальное смещение дочернего объекта
+        if (childObject != null && childObject.parent == transform)
+        {
+            childStartOffset = childObject.position - startPosition;
+        }
 
         interactable = GetComponent<XRSimpleInteractable>();
         if (interactable == null)
@@ -31,7 +39,6 @@ public class LiftObjectsOnGrip : MonoBehaviour
         var interactor = args.interactorObject.transform;
         Transform controllerParent = interactor.parent;
 
-        
         while (controllerParent != null)
         {
             string name = controllerParent.name;
@@ -58,6 +65,12 @@ public class LiftObjectsOnGrip : MonoBehaviour
         if (!isMoving) return;
 
         transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
+        
+        // Двигаем дочерний объект вместе с родителем
+        if (childObject != null)
+        {
+            childObject.position = transform.position + childStartOffset;
+        }
 
         if (Vector3.Distance(transform.position, targetPosition) < 0.001f)
         {
